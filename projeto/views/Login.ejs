@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+	</head>
+<body>
+	<center>
+		<img src="https://nei.ufrn.br/dist/img/parceiros/sigaa.png">
+		<img src="https://ufrn.br/resources/img/logo-ufrn-color-og.png">
+		<h1>UNIPROVAS</h1>
+		
+		<br>
+
+		<form style = "width: 400px">
+			<div class="mb-3">
+			    <label for="login" class="form-label">Login</label>
+			    <input type="text" class="form-control" id="login">
+			</div>
+			
+			<div class="mb-3">
+			    <label for="senha" class="form-label">Senha</label>
+			    <input type="password" class="form-control" id="senha">
+			</div>
+		</form>
+
+		<button class="btn btn-primary" onclick="login()">Logar</button>
+	</center>
+	<!-- Importando a biblioteca axios para fazer requisições-->
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	<script>
+		function login(){
+			var login = document.getElementById("login").value;
+			var senha = document.getElementById("senha").value;
+			
+			//Fazendo a requisição post enviando os dados de login
+			axios.post('http://localhost:3000/login',{
+				username: login,
+				password: senha
+			}).then((result)=>{
+				//Se o login for bem sucedido, o token é gerado e armazenado com as próximas linha de código
+				window.localStorage.setItem('token', result.data.token);
+				axios.defaults.headers.commom = {'Authorization': `Bearer ${result.data.token}`};
+
+				//Tela inicial caso o usuário for professor é questões cadastradas
+				if(result.data.role === 'teacher'){
+					axios.get('http://localhost:3000/QuestoesCadastradas',{}).then(()=>{
+						window.location.replace('QuestoesCadastradas');
+					});
+				}
+				if(result.data.role === 'student'){
+					window.location.replace('TelaAlunoProvas');
+				}
+			}).catch(()=>{
+				alert("Login ou senha inválidos");
+			});
+		}
+	</script>
+</body>
+
+</html>

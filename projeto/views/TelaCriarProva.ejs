@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+</head>
+
+<body>
+    <center>
+        <img src="https://ufrn.br/resources/img/logo-ufrn-color-og.png">
+        <h1>SELECIONE AS QUESTÕES PARA COLOCAR NA PROVA</h1>
+
+        <div id="teste" style="display: flex; flex-wrap: wrap; justify-content: space-around; max-width: 100%; "></div>
+        <br>
+        <button class="btn btn-primary" onclick="criarProva()"> Cadastrar prova </button><br><br>
+        <button class="btn btn-light" onclick="voltar()"> Voltar </button><br><br>
+    </center>
+    <!-- Importando a biblioteca axios para fazer requisições-->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        //O array respostas é só para ajeitar a visualização do item "Resposta"
+        const respostas = ['A', 'B', 'C', 'D'];
+
+        //Função para carregar as questões do banco
+        async function carregar() {
+            const resposta = await axios.get('http://localhost:3000/question');
+            const data = resposta.data.questions;
+            document.getElementById("teste").innerHTML = '';
+            var q;
+            for (let i = 0; i < data.length; i++) {
+                q = `<div class='card' id=question-${data[i].id} style='width: 18rem; margin-bottom: 20px'>\
+                            <div class='card-body'>\
+                               <h5 class='card-title'>Questão  ${i + 1} </h5>\
+                               <p class='card-text'>id:  ${data[i].id} </p><br/>\
+                               <p class='card-text'>Enunciado:  ${data[i].enunciado} </p><br/>\
+                               <p class='card-text'>A:  ${data[i].alternativas[0]} </p><br/>\
+                               <p class='card-text'>B:  ${data[i].alternativas[1]} </p><br/>\
+                               <p class='card-text'>C:  ${data[i].alternativas[2]} </p><br/>\
+                               <p class='card-text'>D:  ${data[i].alternativas[3]} </p><br/>\
+                               <p class='card-text'>Resposta:  ${respostas[+data[i].resposta]} </p><br/>\
+                               <p class='card-text'>Dificuldade:  ${data[i].dificuldade} </p><br/>\
+                               <p class='card-text'>Categoria:  ${data[i].categoria} </p><br/>\
+                               <button class='btn btn-info' onclick='adicionarQuestaoProva(${data[i].id})'>ADICIONAR QUESTÃO</button>\
+                           </div>\
+                        </div></br>`;
+
+                document.getElementById("teste").innerHTML += q;
+            }
+        }
+        carregar();
+
+        //Função para adicionar a questão na prova
+        var ids = [];
+        async function adicionarQuestaoProva(id) {
+            if (!ids.includes(id)) {
+                ids.push(id);
+                let questionCard = document.getElementById(`question-${id}`);
+                questionCard.innerHTML += `<button class='btn btn-danger' onclick='removerQuestaoProva(${id})'>REMOVER</button>`
+            }
+        }
+        async function removerQuestaoProva(id) {
+            ids = ids.filter((q)=>(
+                q !== id
+            ));
+            let questionCard = document.getElementById(`question-${id}`);
+            questionCard.removeChild(questionCard.lastElementChild);
+        }
+
+        async function criarProva(){
+            await axios.post('http://localhost:3000/exam',{ids: ids});
+            alert("Prova cadastrada com sucesso");
+            window.location.replace('/QuestoesCadastradas');
+        }
+
+        function voltar() {
+            window.location.replace('/QuestoesCadastradas');
+        }
+    </script>
+</body>
+
+</html>
